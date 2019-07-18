@@ -15,9 +15,9 @@
 
 ### Overview of files in this repository
 * There are three implementations of the optimization algorithm.
-** `Optimization based Inverse Rendering-PyTorch.ipynb` - Pytorch implementation. The rasterization process alone uses numpy as the pytorch version of it slow.
-** `Optimization based Inverse Rendering-Numpy.ipynb` - Numpy Implementation. Although the rendering and rasterization process is fast the autograd part of the code used to calculate the jacobian for Gauss-Newton method is extremely slow! This is because numpy runs on CPU.
-** `Optimization based Inverse Rendering-MXNet.ipynb` - MXNet Implementation. To overcome the hurdle in the numpy implementation MXNet provides GPU accelerated numpy. But doesn't have a jacobian function as in numpy. The code is not complete since the jacobian computation proves to be tricky.
+* `Optimization based Inverse Rendering-PyTorch.ipynb` - Pytorch implementation. The rasterization process alone uses numpy as the pytorch version of it slow.
+* `Optimization based Inverse Rendering-Numpy.ipynb` - Numpy Implementation. Although the rendering and rasterization process is fast the autograd part of the code used to calculate the jacobian for Gauss-Newton method is extremely slow! This is because numpy runs on CPU.
+* `Optimization based Inverse Rendering-MXNet.ipynb` - MXNet Implementation. To overcome the hurdle in the numpy implementation MXNet provides GPU accelerated numpy. But doesn't have a jacobian function as in numpy. The code is not complete since the jacobian computation proves to be tricky.
 
 ### References
 * Guo, Yudong, et al. "Cnn-based real-time dense face reconstruction with inverse-rendered photo-realistic face images." IEEE transactions on pattern analysis and machine intelligence 41.6 (2018): 1294-1307.
