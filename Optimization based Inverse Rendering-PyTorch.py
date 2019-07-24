@@ -589,7 +589,7 @@ while True:
     print('Rendering Done! - %f seconds' %(time()-st) )
     w_l = 100
     w_r = 5e-5
-    
+    #Gauss Newton minimizes sum of squares of residuals. E(the objective function) is considered as sum of squares of residuals. For calculating the jacobian we only need the residuals not their squares
     E_con_r = torch.tensor([np.sqrt(1/28241)*torch.norm(I_rend - I_in)], requires_grad = True)
     E_lan_r = np.sqrt(w_l/68)*torch.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2], dim=1)
     E_reg_r = np.sqrt(w_r)*torch.cat((al_id/std_id,al_alb/std_alb,al_exp/std_exp))
@@ -609,7 +609,6 @@ while True:
         break
 
 
-# Gauss Newton minimizes sum of squares of residuals. E(the objective function) is considered as sum of squares of residuals. For calculating the jacobian we only need the residuals not their squares
 
 # In[ ]:
 
