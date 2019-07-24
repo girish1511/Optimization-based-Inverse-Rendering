@@ -472,8 +472,9 @@ class model_fitting(object):
         E_lan = (1/self.no_of_lmks)*np.linalg.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2])**2 #68 landmarks
         E_reg = np.linalg.norm(al_id/self.std_id)**2 + np.linalg.norm(al_alb/self.std_alb)**2 + np.linalg.norm(al_exp/self.std_exp)**2
         
-        E_con_r = np.sqrt(1/self.no_of_face_pxls)*nd.norm(I_rend-self.I_in)#np.reshape((I_rend-self.I_in),-1)#E_con + w_l*E_lan + w_r*E_reg
-        E_lan_r = np.sqrt(w_l/self.no_of_lmks)*nd.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2], axis=1)#np.reshape((lmks_2d - q_image[lmks_3d_ind[0,:],:2]),-1)
+        #Gauss Newton minimizes sum of squares of residuals. E(the objective function) is considered as sum of squares of residuals. For calculating the jacobian we only need the residuals not their squares
+        E_con_r = np.sqrt(1/self.no_of_face_pxls)*nd.norm(I_rend-self.I_in)
+        E_lan_r = np.sqrt(w_l/self.no_of_lmks)*nd.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2], axis=1)
         E_reg_r = np.sqrt(w_r)*nd.concat(al_id/self.std_id,al_alb/self.std_alb,al_exp/self.std_exp, dim = 0)
         
         return nd.concat(E_con_r,E_lan_r,E_reg_r[:,0], dim=0)
@@ -512,21 +513,4 @@ class model_fitting(object):
 
 
 obj=model_fitting(256,256)
-
-
-# In[ ]:
-
-
-n = len(obj.chi)
-dx = 1e-8
-x = obj.chi
-f = obj.E
-func = f(x)
-m = len(func)
-jac = nd.zeros((m,n))
-x = x.asnumpy()
-for j in range(n): #through columns to allow for vector addition
-    Dxj = (abs(x[j])*dx if x[j] != 0 else dx)
-    x_plus = nd.array([(xi if k != j else xi+Dxj) for k, xi in enumerate(x)], ctx=mx.gpu(0))
-    jac[:, j] = (f(x_plus)-func)/Dxj
 
