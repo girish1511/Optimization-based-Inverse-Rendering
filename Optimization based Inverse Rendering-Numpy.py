@@ -458,7 +458,7 @@ class model_fitting(object):
         E_con = (1/self.no_of_face_pxls)*np.linalg.norm(I_rend - self.I_in)**2 #No of face pixels is apporximately 28241
         E_lan = (1/self.no_of_lmks)*np.linalg.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2])**2 #68 landmarks
         E_reg = np.linalg.norm(al_id/self.std_id)**2 + np.linalg.norm(al_alb/self.std_alb)**2 + np.linalg.norm(al_exp/self.std_exp)**2
-        
+        #Gauss Newton minimizes sum of squares of residuals. E(the objective function) is considered as sum of squares of residuals. For calculating the jacobian we only need the residuals not their squares
         E_con_r = np.sqrt(1/self.no_of_face_pxls)*np.linalg.norm(I_rend-self.I_in)#np.reshape((I_rend-self.I_in),-1)#E_con + w_l*E_lan + w_r*E_reg
         E_lan_r = np.sqrt(w_l/self.no_of_lmks)*np.linalg.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2], axis=1)#np.reshape((lmks_2d - q_image[lmks_3d_ind[0,:],:2]),-1)
         E_reg_r = np.sqrt(w_r)*np.concatenate(((al_id/self.std_id),(al_alb/self.std_alb),(al_exp/self.std_exp)), axis = 0)
@@ -502,9 +502,7 @@ class model_fitting(object):
                 chi_prev[279,0] = 150/(np.max(self.vertex)-np.min(self.vertex))
                 E_val = self.E(chi_prev)
             print('s:',chi_prev[279,0])
-#             J = jacobian_E(chi_prev)
-            
-#             self.J = self.Jaco(E_val, self.chi)
+#             self.J = jacobian_E(chi_prev)
             st=time()
             results = np.array([Parallel(n_jobs=num_cores)(delayed(self.jacob)(j,obj.E,chi_prev,E_val,dx) for j in range(n))])
             print('Parallelization time:', time()-st)
