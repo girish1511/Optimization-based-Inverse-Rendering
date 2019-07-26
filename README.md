@@ -16,7 +16,7 @@
 
 ### Overview of files in this repository
 * There are three implementations of the optimization algorithm.
-* `Optimization based Inverse Rendering-PyTorch.ipynb/.py` - Pytorch implementation. The rasterization process alone uses numpy as the pytorch version of it slow.
+* `Optimization based Inverse Rendering-PyTorch.ipynb/.py` - Pytorch implementation. The rasterization process alone uses numpy as the pytorch version of it is slow. Since torch tensor is converted to numpy, it gets detached from the graph and therefore torch.backward() cannot be used for calculating gradients and jacobain. To use the pytorch implementation convert all the numpy parts to torch tensor.
 * `Optimization based Inverse Rendering-Numpy.ipynb/.py` - Numpy Implementation. Although the rendering and rasterization process is fast the autograd part of the code used to calculate the jacobian for Gauss-Newton method is extremely slow! This is because numpy runs on CPU.
 * `Optimization based Inverse Rendering-MXNet.ipynb/.py` - MXNet Implementation. To overcome the hurdle in the numpy implementation, MXNet provides GPU accelerated numpy but doesn't have a jacobian function as in numpy. The code is not complete since the jacobian computation proves to be tricky.
 
