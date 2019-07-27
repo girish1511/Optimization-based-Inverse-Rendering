@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import autograd.numpy as np
@@ -20,7 +20,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 
 
-# In[2]:
+# In[1]:
 
 
 class model_fitting(object):
@@ -45,8 +45,9 @@ class model_fitting(object):
         self.lmks={}
         self.no_of_lmks = None
         self.no_of_face_pixels = None
-        self.verteex = None
+        self.vertex = None
         self.albedo = None
+        self.q_image = None
         self.J = None
         self.load_data()
         
@@ -448,22 +449,19 @@ class model_fitting(object):
         self.cal_ver_alb(al_id, al_exp, al_alb)
         q_world = s*R@self.vertex.T
         q_world[:2,:] = q_world[:2,:] + t
-        q_image = self.world_to_image(q_world.T)
+        self.q_image = self.world_to_image(q_world.T)
 
         I_rend = self.render_color_image(q_image, self.albedo, gamma)
         self.I_rend = I_rend
 
         w_l = 10
         w_r = 5e-5
-        E_con = (1/self.no_of_face_pxls)*np.linalg.norm(I_rend - self.I_in)**2 #No of face pixels is apporximately 28241
-        E_lan = (1/self.no_of_lmks)*np.linalg.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2])**2 #68 landmarks
-        E_reg = np.linalg.norm(al_id/self.std_id)**2 + np.linalg.norm(al_alb/self.std_alb)**2 + np.linalg.norm(al_exp/self.std_exp)**2
-        #Gauss Newton minimizes sum of squares of residuals. E(the objective function) is considered as sum of squares of residuals. For calculating the jacobian we only need the residuals not their squares
-        E_con_r = np.sqrt(1/self.no_of_face_pxls)*np.linalg.norm(I_rend-self.I_in)#np.reshape((I_rend-self.I_in),-1)#E_con + w_l*E_lan + w_r*E_reg
-        E_lan_r = np.sqrt(w_l/self.no_of_lmks)*np.linalg.norm(lmks_2d - q_image[lmks_3d_ind[0,:],:2], axis=1)#np.reshape((lmks_2d - q_image[lmks_3d_ind[0,:],:2]),-1)
+        
+        E_con_r = np.sqrt(1/self.no_of_face_pxls)*np.reshape((I_rend-self.I_in),-1)#E_con + w_l*E_lan + w_r*E_reg
+        E_lan_r = np.sqrt(w_l/self.no_of_lmks)*np.reshape((lmks_2d - q_image[lmks_3d_ind[0,:],:2]),-1)
         E_reg_r = np.sqrt(w_r)*np.concatenate(((al_id/self.std_id),(al_alb/self.std_alb),(al_exp/self.std_exp)), axis = 0)
         
-        return np.concatenate((np.array([E_con_r]),E_lan_r,E_reg_r[slice(None),0]), axis=0)
+        return np.concatenate((E_con_r,E_lan_r,E_reg_r[slice(None),0]), axis=0)
     
     '''Jacobian matrix estimation'''
 #     def Jaco(self, func, x, dx=10^-8):
@@ -488,14 +486,12 @@ class model_fitting(object):
     
     def Gauss_Newton_optim(self):
         chi_prev = self.chi.copy()
-#         jacobian_E = jacobian(self.E)
+#         jacobian_E = jacobian(self.E) ####This is module from autograd library(too slow)
         count = 1
         num_cores = multiprocessing.cpu_count()
         n = len(chi_prev)
         dx = 1e-8
         while True:
-    #     chi_prev[279] = 100/(np.max(vertex) - np.min(vertex))
-            
             print("Iteration No: ", count)
             if count==1:
                 self.cal_ver_alb(self.chi[0:100],self.chi[100:179],self.chi[179:279])
@@ -509,13 +505,16 @@ class model_fitting(object):
             self.J = results.squeeze().T
             chi_next = chi_prev - np.linalg.pinv(self.J.T@self.J)@self.J.T@E_val[:,np.newaxis]
             E_val = self.E(chi_next)
-            print('Increment: ', np.linalg.norm(chi_next-chi_prev))
-            print('Loss: ',np.linalg.norm(E_val)**2)
-            chi_prev = chi_next
-            count=count+1
-            if np.linalg.norm(E_val)**2<100:
-                self.chi_final = chi_prev
+            incre =  np.linalg.norm(chi_next-chi_prev)
+            loss = E_val.T@E_val
+            print('Increment: ', incre)
+            print('Loss: ',loss)
+            if loss<10 or incre<0.01 :
+                self.chi_final = chi_next
                 break
+            else:
+                chi_prev = chi_next
+                count=count+1
 
     def plot_rendered_image(self):
         im = self.I_rend+np.abs(np.min(self.I_rend))
@@ -523,7 +522,7 @@ class model_fitting(object):
         plt.imshow(im)
 
 
-# In[3]:
+# In[ ]:
 
 
 obj=model_fitting(256,256)
@@ -534,10 +533,37 @@ obj=model_fitting(256,256)
 
 
 obj.cal_ver_alb(obj.chi[0:100],obj.chi[100:179],obj.chi[179:279])
+obj.chi[279,0] = 150/(np.max(obj.vertex) - np.min(obj.vertex))
 
 
 # In[ ]:
 
 
 obj.Gauss_Newton_optim()
+
+
+# In[ ]:
+
+
+al_id = obj.chi_final[0:100]
+al_exp = obj.chi_final[100:179]
+[s, pitch, yaw, roll] = obj.chi_final[179:183,0]
+t = obj.chi_final[183:185]
+lmks_2d = obj.lmks['2d']
+lmks_3d_ind = obj.lmks['3d']
+
+R = obj.rot_mat(pitch, yaw, roll)
+
+p = obj.p_mu + obj.A_id@al_id + obj.A_exp@al_exp
+obj.vertex2 = np.reshape(p, (obj.no_of_ver, 3))
+q_world = s*R@obj.vertex2.T
+q_world[:2,:] = q_world[:2,:] + t
+q_image = obj.world_to_image(q_world.T)
+
+
+# In[ ]:
+
+
+plt.scatter(lmks_2d[:,0],-lmks_2d[:,1])
+plt.scatter(q_image[lmks_3d_ind[0,:],0],-q_image[lmks_3d_ind[0,:],1])
 
