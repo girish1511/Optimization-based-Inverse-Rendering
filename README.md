@@ -1,5 +1,5 @@
 # Optimization-based-Inverse-Rendering
-## Advisor: Prof. Xiaohu Guo, University of Texas at Dallas
+## Advisor: Dr. Xiaohu Guo, University of Texas at Dallas
 ## Research Internship, Summer 2019
 
 ### Introduction
