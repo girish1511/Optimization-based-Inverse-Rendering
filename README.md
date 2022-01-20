@@ -21,6 +21,6 @@
 * `Optimization based Inverse Rendering-MXNet.ipynb/.py` - MXNet Implementation. To overcome the hurdle in the numpy implementation, MXNet provides GPU accelerated numpy but doesn't have a jacobian function as in numpy. The code is not complete since the jacobian computation proves to be tricky.
 
 ### References
-* Guo, Yudong, et al. "Cnn-based real-time dense face reconstruction with inverse-rendered photo-realistic face images." IEEE transactions on pattern analysis and machine intelligence 41.6 (2018): 1294-1307.
-* Rendering adn rasterization code based on [this implemention](https://github.com/YadiraF/face3d)
+* Guo, Yudong, et al. "CNN-based real-time dense face reconstruction with inverse-rendered photo-realistic face images." IEEE transactions on pattern analysis and machine intelligence 41.6 (2018): 1294-1307.
+* Rendering and rasterization code based on [this implemention](https://github.com/YadiraF/face3d)
 * Jacobian matrix computation function in pytorch is based on [this implementation](https://github.com/ast0414/adversarial-example/blob/master/craft.py) and in numpy is based on [this implementation](https://stackoverflow.com/questions/49553006/compute-the-jacobian-matrix-in-python)
